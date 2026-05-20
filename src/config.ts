@@ -72,6 +72,15 @@ export function resolveConfig(config: DattoBcdrConfig): ResolvedConfig {
     throw new Error('Both apiKey and apiSecretKey must be provided');
   }
   const apiUrl = (config.apiUrl ?? DEFAULT_API_URL).replace(/\/+$/, '');
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(apiUrl);
+  } catch {
+    throw new Error(`apiUrl must be a well-formed URL, received: ${apiUrl}`);
+  }
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error(`apiUrl must use the https:// scheme, received: ${apiUrl}`);
+  }
   return {
     apiKey: config.apiKey,
     apiSecretKey: config.apiSecretKey,
