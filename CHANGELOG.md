@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/wyre-technology/node-datto-bcdr/compare/v1.0.0...v1.0.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* address medium/low review findings ([#2](https://github.com/wyre-technology/node-datto-bcdr/issues/2)) ([0b939e9](https://github.com/wyre-technology/node-datto-bcdr/commit/0b939e98f17e9227764b65cfc8d66ba22b0f3b1c))
+
 # 1.0.0 (2026-04-30)
 
 
