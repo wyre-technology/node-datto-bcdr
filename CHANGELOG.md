@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/wyre-technology/node-datto-bcdr/compare/v1.0.1...v2.0.0) (2026-06-11)
+
+
+### Bug Fixes
+
+* **auth:** use HTTP Basic auth instead of custom HMAC signing ([#25](https://github.com/wyre-technology/node-datto-bcdr/issues/25)) ([c679450](https://github.com/wyre-technology/node-datto-bcdr/commit/c679450ccc5dbdb6e4a4841ee5c630b3eadc9ffb))
+
+
+### BREAKING CHANGES
+
+* **auth:** Removed computeSignature from public exports and changed buildSignedHeaders to take only (publicKey, privateKey).
+
 ## [1.0.1](https://github.com/wyre-technology/node-datto-bcdr/compare/v1.0.0...v1.0.1) (2026-05-20)
 
 
