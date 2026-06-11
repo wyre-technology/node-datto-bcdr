@@ -5,7 +5,6 @@ import {
   DattoBcdrForbiddenError,
   DattoBcdrNotFoundError,
   DattoBcdrRateLimitError,
-  DattoBcdrSignatureError,
 } from '../../src/errors.js';
 
 function makeClient(): DattoBcdrClient {
@@ -76,10 +75,9 @@ describe('DattoBcdrClient', () => {
     await expect(c.devices.get('MISSING')).rejects.toBeInstanceOf(DattoBcdrNotFoundError);
   });
 
-  it('maps 401 with signature message to DattoBcdrSignatureError', async () => {
+  it('maps 401 to DattoBcdrAuthenticationError', async () => {
     const c = makeClient();
     const err = await c.devices.get('UNAUTH').catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(DattoBcdrSignatureError);
     expect(err).toBeInstanceOf(DattoBcdrAuthenticationError);
   });
 

@@ -24,7 +24,7 @@ export {
 } from './errors.js';
 
 // Auth helpers (exported for advanced users / testing)
-export { buildCanonicalPath, computeSignature, buildSignedHeaders } from './auth.js';
+export { buildCanonicalPath, buildSignedHeaders } from './auth.js';
 export type { SignedHeaders } from './auth.js';
 
 // Pagination

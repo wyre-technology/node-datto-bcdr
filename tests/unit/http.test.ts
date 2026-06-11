@@ -1,16 +1,15 @@
 /**
- * HTTP layer integration tests — verifies that the HMAC headers reach the
- * server and match the canonical (sorted) query string.
+ * HTTP layer integration tests — verifies that HTTP Basic auth headers reach
+ * the server and the query string is properly sorted.
  */
 
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
-import { createHmac } from 'node:crypto';
 import { server } from '../mocks/server.js';
 import { DattoBcdrClient } from '../../src/client.js';
 
-describe('HMAC signing on the wire', () => {
-  it('sends the three Datto headers and signs the sorted query string', async () => {
+describe('HTTP Basic auth on the wire', () => {
+  it('sends correct Authorization header and sorts query string', async () => {
     let captured:
       | { method: string; pathAndQuery: string; headers: Record<string, string> }
       | null = null;
@@ -45,19 +44,15 @@ describe('HMAC signing on the wire', () => {
       headers: Record<string, string>;
     };
 
-    // Headers present
-    expect(c.headers['x-datto-api-key']).toBe('pub-key');
-    expect(c.headers['x-datto-api-timestamp']).toMatch(/^\d+$/);
-    expect(c.headers['x-datto-api-signature']).toMatch(/^[0-9a-f]{64}$/);
+    // Basic auth header present and correctly formatted
+    expect(c.headers.authorization).toBeDefined();
+    expect(c.headers.authorization).toMatch(/^Basic /);
+
+    // Verify base64 encoding of credentials
+    const expectedAuth = Buffer.from('pub-key:priv-key').toString('base64');
+    expect(c.headers.authorization).toBe(`Basic ${expectedAuth}`);
 
     // Query string is sorted alphabetically; path includes the /v1 base prefix
     expect(c.pathAndQuery).toBe('/v1/bcdr/device?_page=1&_perPage=50');
-
-    // Signature matches the canonical input string (server-visible path + sorted query)
-    const ts = c.headers['x-datto-api-timestamp'];
-    const expected = createHmac('sha256', 'priv-key')
-      .update(`GET\n/v1/bcdr/device?_page=1&_perPage=50\n${ts}\n`)
-      .digest('hex');
-    expect(c.headers['x-datto-api-signature']).toBe(expected);
   });
 });

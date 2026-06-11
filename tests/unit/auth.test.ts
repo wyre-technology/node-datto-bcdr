@@ -2,10 +2,8 @@
  * Auth / signing tests.
  */
 import { describe, it, expect } from 'vitest';
-import { createHmac } from 'node:crypto';
 import {
   buildCanonicalPath,
-  computeSignature,
   buildSignedHeaders,
 } from '../../src/auth.js';
 
@@ -37,49 +35,28 @@ describe('buildCanonicalPath', () => {
   });
 });
 
-describe('computeSignature', () => {
-  it('produces a deterministic HMAC-SHA256 hex digest', () => {
-    const sig = computeSignature('secret', 'GET', '/bcdr/device', '1700000000', '');
-    const expected = createHmac('sha256', 'secret')
-      .update('GET\n/bcdr/device\n1700000000\n')
-      .digest('hex');
-    expect(sig).toBe(expected);
-    // sanity: 64 hex chars
-    expect(sig).toMatch(/^[0-9a-f]{64}$/);
-  });
-
-  it('changes when any input changes', () => {
-    const base = computeSignature('secret', 'GET', '/x', '100', '');
-    expect(computeSignature('secret', 'GET', '/x', '101', '')).not.toBe(base);
-    expect(computeSignature('secret', 'POST', '/x', '100', '')).not.toBe(base);
-    expect(computeSignature('secret', 'GET', '/y', '100', '')).not.toBe(base);
-    expect(computeSignature('secret', 'GET', '/x', '100', 'body')).not.toBe(base);
-    expect(computeSignature('other', 'GET', '/x', '100', '')).not.toBe(base);
-  });
-});
-
 describe('buildSignedHeaders', () => {
-  it('includes the three required headers', () => {
-    const headers = buildSignedHeaders(
-      'pub',
-      'priv',
-      'GET',
-      '/bcdr/device',
-      '',
-      () => 1700000000_000
-    );
-    expect(headers['X-Datto-API-Key']).toBe('pub');
-    expect(headers['X-Datto-API-Timestamp']).toBe('1700000000');
-    expect(headers['X-Datto-API-Signature']).toMatch(/^[0-9a-f]{64}$/);
+  it('returns HTTP Basic auth header', () => {
+    const headers = buildSignedHeaders('pub', 'priv');
+    expect(headers.Authorization).toBeDefined();
+    expect(headers.Authorization).toMatch(/^Basic /);
   });
 
-  it('uses the same canonical path for signing as the caller passes in', () => {
-    const path = buildCanonicalPath('/bcdr/device', { _perPage: 250, _page: 1 });
-    expect(path).toBe('/bcdr/device?_page=1&_perPage=250');
-    const headers = buildSignedHeaders('pub', 'priv', 'GET', path, '', () => 1_700_000_000_000);
-    const expected = createHmac('sha256', 'priv')
-      .update(`GET\n${path}\n1700000000\n`)
-      .digest('hex');
-    expect(headers['X-Datto-API-Signature']).toBe(expected);
+  it('correctly encodes credentials in base64', () => {
+    const headers = buildSignedHeaders('testpub', 'testpriv');
+    const expected = Buffer.from('testpub:testpriv').toString('base64');
+    expect(headers.Authorization).toBe(`Basic ${expected}`);
+  });
+
+  it('handles special characters in credentials', () => {
+    const headers = buildSignedHeaders('user@example.com', 'p@ssw0rd!');
+    const expected = Buffer.from('user@example.com:p@ssw0rd!').toString('base64');
+    expect(headers.Authorization).toBe(`Basic ${expected}`);
+  });
+
+  it('produces different auth headers for different credentials', () => {
+    const headers1 = buildSignedHeaders('pub1', 'priv1');
+    const headers2 = buildSignedHeaders('pub2', 'priv2');
+    expect(headers1.Authorization).not.toBe(headers2.Authorization);
   });
 });

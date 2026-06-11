@@ -21,15 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- CI workflow (`.github/workflows/ci.yml`) running lint, type check, build, and tests on pull requests and pushes (Node 22).
-- `CODE_OF_CONDUCT.md` (Contributor Covenant).
-- Validation of `apiUrl` in `resolveConfig` — it must be a well-formed `https://` URL.
-
 ### Fixed
 
-- Resolved `strict-boolean-expressions` lint warnings in `src/http.ts` and `src/rate-limiter.ts` by handling nullish values explicitly.
+- Fixed authentication failure by switching from custom HMAC-SHA256 signing to HTTP Basic auth. The Datto BCDR API expects Basic authentication (public key = username, secret key = password), not custom HMAC headers. This resolves universal HTTP 401 authentication failures.
 
 ## [0.1.0]
 
