@@ -12,7 +12,6 @@ import {
   DattoBcdrNotFoundError,
   DattoBcdrRateLimitError,
   DattoBcdrServerError,
-  DattoBcdrSignatureError,
 } from './errors.js';
 
 /**
@@ -48,11 +47,8 @@ export class HttpClient {
     const { method = 'GET', body, params, binary = false } = options;
     const pathAndQuery = buildCanonicalPath(path, params);
     const url = `${this.config.apiUrl}${pathAndQuery}`;
-    // Sign the URL path the server sees (includes any base-path prefix such as "/v1").
-    const parsed = new URL(url);
-    const canonicalPath = `${parsed.pathname}${parsed.search}`;
     const bodyString = body === undefined ? '' : JSON.stringify(body);
-    return this.executeRequest<T>(url, canonicalPath, method, bodyString, binary, 0);
+    return this.executeRequest<T>(url, method, bodyString, binary, 0);
   }
 
   /**
@@ -71,7 +67,6 @@ export class HttpClient {
 
   private async executeRequest<T>(
     url: string,
-    canonicalPath: string,
     method: string,
     bodyString: string,
     binary: boolean,
@@ -79,13 +74,7 @@ export class HttpClient {
   ): Promise<T> {
     await this.rateLimiter.waitForSlot();
 
-    const signed = buildSignedHeaders(
-      this.config.apiKey,
-      this.config.apiSecretKey,
-      method,
-      canonicalPath,
-      bodyString
-    );
+    const signed = buildSignedHeaders(this.config.apiKey, this.config.apiSecretKey);
 
     const headers: Record<string, string> = {
       Accept: binary ? 'image/png, application/octet-stream, */*' : 'application/json',
@@ -101,13 +90,12 @@ export class HttpClient {
       body: bodyString || undefined,
     });
 
-    return this.handleResponse<T>(response, url, canonicalPath, method, bodyString, binary, retryCount);
+    return this.handleResponse<T>(response, url, method, bodyString, binary, retryCount);
   }
 
   private async handleResponse<T>(
     response: Response,
     url: string,
-    canonicalPath: string,
     method: string,
     bodyString: string,
     binary: boolean,
@@ -139,12 +127,6 @@ export class HttpClient {
 
     switch (response.status) {
       case 401: {
-        if (isSignatureFailure(responseBody)) {
-          throw new DattoBcdrSignatureError(
-            'HMAC signature rejected (check system clock and API keys)',
-            responseBody
-          );
-        }
         throw new DattoBcdrAuthenticationError('Authentication failed', 401, responseBody);
       }
       case 403:
@@ -160,7 +142,7 @@ export class HttpClient {
         if (this.rateLimiter.shouldRetry(retryCount)) {
           const delay = this.rateLimiter.calculateRetryDelay(retryCount, retryAfterSeconds);
           await this.sleep(delay);
-          return this.executeRequest<T>(url, canonicalPath, method, bodyString, binary, retryCount + 1);
+          return this.executeRequest<T>(url, method, bodyString, binary, retryCount + 1);
         }
         throw new DattoBcdrRateLimitError(
           'Rate limit exceeded and max retries reached',
@@ -172,7 +154,7 @@ export class HttpClient {
         if (response.status >= 500) {
           if (retryCount === 0) {
             await this.sleep(1000);
-            return this.executeRequest<T>(url, canonicalPath, method, bodyString, binary, 1);
+            return this.executeRequest<T>(url, method, bodyString, binary, 1);
           }
           throw new DattoBcdrServerError(
             `Server error: ${response.status} ${response.statusText}`,
@@ -193,17 +175,3 @@ export class HttpClient {
   }
 }
 
-/**
- * Heuristic: does a 401 response look like an HMAC signature/clock failure?
- */
-function isSignatureFailure(body: unknown): boolean {
-  if (typeof body !== 'object' || body === null) return false;
-  const record = body as Record<string, unknown>;
-  const msg = String(record['message'] ?? record['error'] ?? '').toLowerCase();
-  return (
-    msg.includes('signature') ||
-    msg.includes('timestamp') ||
-    msg.includes('clock') ||
-    msg.includes('skew')
-  );
-}
