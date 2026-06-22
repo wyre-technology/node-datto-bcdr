@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/wyre-technology/node-datto-bcdr/compare/v2.0.0...v2.0.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **tsconfig:** restore include/exclude globs ([#35](https://github.com/wyre-technology/node-datto-bcdr/issues/35)) ([c1f449e](https://github.com/wyre-technology/node-datto-bcdr/commit/c1f449e873bab4ff9182afbfc78016c953de4158))
+
 # [2.0.0](https://github.com/wyre-technology/node-datto-bcdr/compare/v1.0.1...v2.0.0) (2026-06-11)
 
 
