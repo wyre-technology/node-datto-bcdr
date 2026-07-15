@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/wyre-technology/node-datto-bcdr/compare/v2.0.1...v2.0.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* use live activity-log and per-device alert endpoints ([#43](https://github.com/wyre-technology/node-datto-bcdr/issues/43)) ([1d4c25a](https://github.com/wyre-technology/node-datto-bcdr/commit/1d4c25a146dae625e0d1dfe242bf5372e8f57a2b)), closes [wyre-technology/datto-bcdr-mcp#54](https://github.com/wyre-technology/datto-bcdr-mcp/issues/54) [wyre-technology/datto-bcdr-mcp#55](https://github.com/wyre-technology/datto-bcdr-mcp/issues/55)
+
 ## [2.0.1](https://github.com/wyre-technology/node-datto-bcdr/compare/v2.0.0...v2.0.1) (2026-06-22)
 
 
