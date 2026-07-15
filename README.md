@@ -114,8 +114,9 @@ client.screenshots.getImage(serialNumber, agentId, epoch) // → Buffer (PNG)
 
 client.offsite.get(serialNumber)
 
-client.alerts.list(params)
-client.alerts.listAll(params)
+client.alerts.listByDevice(serialNumber, params)    // page of one device's alerts
+client.alerts.listAllByDevice(serialNumber, params) // async iterable (one device)
+client.alerts.listAll(params)                        // async iterable, fanned out over every device
 
 client.activity.list(params)
 client.activity.listAll(params)
