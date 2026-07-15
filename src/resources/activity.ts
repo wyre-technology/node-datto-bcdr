@@ -20,7 +20,7 @@ export class ActivityResource {
    * List activity log entries (single page).
    */
   async list(params?: PaginationParams): Promise<PaginatedResponse<BcdrActivityLogEntry>> {
-    return this.httpClient.get<PaginatedResponse<BcdrActivityLogEntry>>('/report/v2/activity-log', {
+    return this.httpClient.get<PaginatedResponse<BcdrActivityLogEntry>>('/report/activity-log', {
       _page: params?.page,
       _perPage: params?.perPage,
     });
@@ -30,6 +30,6 @@ export class ActivityResource {
    * Iterate over every activity log entry.
    */
   listAll(params?: PaginationParams): PaginatedIterable<BcdrActivityLogEntry> {
-    return new PaginatedIterable<BcdrActivityLogEntry>(this.httpClient, '/report/v2/activity-log', params);
+    return new PaginatedIterable<BcdrActivityLogEntry>(this.httpClient, '/report/activity-log', params);
   }
 }

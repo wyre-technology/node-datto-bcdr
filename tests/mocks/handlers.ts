@@ -105,13 +105,26 @@ export const handlers = [
     return HttpResponse.json({ serialNumber: 'SN-1', syncState: 'idle', usedSize: 1024 });
   }),
 
-  // Alerts
-  http.get(`${BASE}/report/v2/alert`, () => {
-    return HttpResponse.json(paginated([{ id: 'alert-1', severity: 'high' }]));
+  // Alerts — scoped per device (no portal-wide endpoint exists)
+  http.get(`${BASE}/bcdr/device/SN-1/alert`, () => {
+    return HttpResponse.json(
+      paginated([
+        { id: 'alert-1', severity: 'high' },
+        { id: 'alert-2', severity: 'low' },
+      ])
+    );
   }),
 
-  // Activity
-  http.get(`${BASE}/report/v2/activity-log`, () => {
+  http.get(`${BASE}/bcdr/device/SN-2/alert`, () => {
+    return HttpResponse.json(paginated([{ id: 'alert-3', severity: 'critical' }]));
+  }),
+
+  http.get(`${BASE}/bcdr/device/SN-3/alert`, () => {
+    return HttpResponse.json(paginated([]));
+  }),
+
+  // Activity — the live path has no /v2/ segment
+  http.get(`${BASE}/report/activity-log`, () => {
     return HttpResponse.json(paginated([{ id: 'act-1', message: 'something happened' }]));
   }),
 ];
